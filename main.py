@@ -4,35 +4,10 @@ import pygame
 import random
 import sys
 
-# init all
-pygame.init()
+def toshow(image, deep):
+    return pygame.transform.scale(image, (int(image.get_size()[0]//(1+deep/5.)), int(image.get_size()[1]//(1+deep/5.))) )
 
-screen_x = 320 # in future use size of BG
-screen_y = 200
-screen = pygame.display.set_mode((screen_x, screen_y))
-
-pygame.mouse.set_visible(0)
-
-bg = []
-bg.append(pygame.image.load("img/forrest1.png").convert_alpha())
-bg.append(pygame.image.load("img/forrest2.png").convert_alpha())
-bg.append(pygame.image.load("img/forrest3.png").convert_alpha())
-bg.append(pygame.image.load("img/forrest4.png").convert_alpha())
-
-shadow = pygame.Surface((screen_x, screen_y), pygame.SRCALPHA)
-shadow.fill((0,0,0,100))
-
-deer_img = pygame.image.load("img/deer.png").convert_alpha()
-leaf_img = pygame.image.load("img/leaf.png").convert_alpha()
-
-pygame.display.set_caption('Forrest')
-pygame.display.set_icon(leaf_img)
-
-timer = pygame.time.Clock()
-
-print "init done"
-
-class Leaf:
+class Drop:
     def __init__(self, position, speed, image):
         self.position = position
         self.speed = speed
@@ -45,30 +20,91 @@ class Leaf:
         self.position[0] += self.speed[0]*random.randrange(0,3)
         self.position[1] += self.speed[1]
 
-    def draw(self):
+    def draw(self, screen, x):
         self.angle -= 5
 
-        screen.blit (pygame.transform.rotate(self.image, self.angle), (self.position[0]-self.image_w, self.position[1]-self.image_h)) # with rotation
+        screen.blit( pygame.transform.rotate(self.image, self.angle), (x+ self.position[0]-self.image_w, self.position[1]-self.image_h) ) # with rotation
         
     def crash(self, pos):
         limit = (self.position[0]-pos[0])**2 + (self.position[1]-pos[1])**2
         if limit < ((self.image_w + self.image_w)/2) **2:
             return 1
 
+class Animal:
+    def __init__(self, position, direction, speed, image):
+        self.position = position
+        self.direction = direction
+        self.speed = speed
+        self.image = image
+
+        if self.direction == 1:
+            self.image = pygame.transform.flip( image, 1, 0)
+
+    def move(self):
+        if self.direction == 1:
+            self.position[0] += self.speed
+        else:
+            self.position[0] -= self.speed
+
+    def draw(self, screen, x):
+        screen.blit( self.image, (x+ self.position[0], self.position[1]) )
+
 
 def main():
-    leaves = []
-    for member in bg:
-        leaves.append([])
+    
+    # init all
+    pygame.init()
 
+    screen_x = 320 # in future use size of BG
+    screen_y = 200
+    #screen = pygame.display.set_mode((screen_x, screen_y), pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((screen_x, screen_y))
+
+    pygame.mouse.set_visible(0)
+
+    bg = []
+    bg.append(pygame.image.load("img/forrest1.png").convert_alpha())
+    bg.append(pygame.image.load("img/forrest2.png").convert_alpha())
+    bg.append(pygame.image.load("img/forrest3.png").convert_alpha())
+    bg.append(pygame.image.load("img/forrest4.png").convert_alpha())
+    
+    #bg.append(pygame.image.load("img/snowforrest1.png").convert_alpha())
+    #bg.append(pygame.image.load("img/snowforrest2.png").convert_alpha())
+    #bg.append(pygame.image.load("img/snowforrest3.png").convert_alpha())
+    #bg.append(pygame.image.load("img/snowforrest4.png").convert_alpha())
+
+    shadow = pygame.Surface((screen_x, screen_y), pygame.SRCALPHA)
+    shadow.fill((0,0,0,110))
+
+    player_img_left = pygame.image.load("img/deer.png").convert_alpha()
+    player_img = player_img_left
+
+    drop_img = pygame.image.load("img/leaf.png").convert_alpha()
+    #drop_img = pygame.image.load("img/snowflake.png").convert_alpha()
+
+    pygame.display.set_caption('Forrest')
+    pygame.display.set_icon(drop_img)
+
+    timer = pygame.time.Clock()
+
+    print "init done"
+    
+    #global position
     x = 0
     y = 0
     deep = 1
-    
     step = 2
     
-    counter = 0
+    drops = []
+    for member in bg:
+        drops.append([])
 
+    animals = []
+    for member in bg:
+        animals.append([])
+
+    counter = 0
+    
     while(1):
         counter += 1
         keys = pygame.key.get_pressed()
@@ -88,8 +124,11 @@ def main():
                     deep -= 1
         if keys[pygame.K_RIGHT]:
             x -= step
+            player_img = pygame.transform.flip( player_img_left, 1, 0)
+            
         if keys[pygame.K_LEFT]:
             x += step
+            player_img = player_img_left
 
         # drawing forrest
         for i,img in reversed(list(enumerate(bg))):
@@ -97,35 +136,55 @@ def main():
             screen.blit( img, ( (x//(i+2))%img.get_width(), y) )
             screen.blit( img, ( (x//(i+2))%img.get_width()-img.get_width(), y) )
             
-            #leaves
-            for one in leaves[i][:]:
+            #drops
+            for one in drops[i][:]:
                 one.move()
                 # check of screen limits
-                if one.position[1] > screen_y+leaf_img.get_size()[1]:
-                    leaves[i].remove(one)
-                # check of hit
+                if one.position[1] > screen_y+one.image.get_size()[1]:
+                    drops[i].remove(one)
                 else:
-                    one.draw()
+                    one.draw(screen, (x//(i+2)))
             
             #shadow
             screen.blit(shadow, (0,0))
-        
+
             #player
             if i == deep:
-                #pygame.draw.circle( screen, (255,100,100), (screen_x//2, screen_y//2 +90 -25*deep), 30-deep**2 )
-                #screen.blit(deer_img, (screen_x/2, screen_y/2 +20 -25*deep) )
-                screen.blit( pygame.transform.scale(deer_img, (int(deer_img.get_size()[0]//(1+deep/5.)), int(deer_img.get_size()[1]//(1+deep/5.))) ), (screen_x//2, screen_y//2 +35 -20*deep) )
-                
-        #adding leaves
-        if counter%10 == 0:
-            leaves[random.randrange(0,len(leaves))].append(Leaf([random.randrange(leaf_img.get_size()[0], screen_x-leaf_img.get_size()[0]), -leaf_img.get_size()[1]], [random.randrange(-1,2),random.randrange(1,3)], leaf_img))
+                player_img_toshow = toshow(player_img, deep)
 
+                screen.blit( player_img_toshow, (screen_x//2 - player_img_toshow.get_size()[0]//2, screen_y -player_img_toshow.get_size()[1] -35*(deep-1)) )
+
+            #animals
+            for one in animals[i][:]:
+                one.move()
+                # check of screen limits
+                #print one.position[0], (-(x//(i+2))+screen_x//2 - player_img_toshow.get_size()[0]//2)
+                #print one.position[0]- (-(x//(i+2))+screen_x//2 - player_img_toshow.get_size()[0]//2)
+                if abs(one.position[0]- (-(x//(i+2))+screen_x//2 - player_img_toshow.get_size()[0]//2)) > 2*screen_x+one.image.get_size()[0]:
+                    animals[i].remove(one)
+                else:
+                    one.draw(screen, (x//(i+2)))
+
+        #adding drops
+        if counter%5 == 0:
+            roll = random.randrange(0,len(drops))
+            drop_img_toshow = toshow(drop_img, roll)
+
+            drops[ roll ].append(Drop([-(x//(roll+2))+ random.randrange(drop_img.get_size()[0], screen_x-drop_img.get_size()[0]), -drop_img.get_size()[1]], [random.randrange(-1,2), 0.5*random.randrange(1, 1+len(drops)-roll) ], drop_img_toshow))
+
+        #adding animals
+        if counter%400 == 0:
+            roll = random.randrange(1,len(animals))
+            animal_img_toshow = toshow(pygame.image.load("img/deer.png").convert_alpha(), roll)
+            roll2 = random.randrange(0, 2)
+            animals[roll].append(Animal( [screen_x//2 - player_img_toshow.get_size()[0]//2-(x//(roll+2)) + (roll2*-2+1)*(animal_img_toshow.get_size()[0]//2+screen_x), screen_y -animal_img_toshow.get_size()[1] -35*(roll-1)], roll2, random.randrange(2,7)/10., animal_img_toshow ))
         
         pygame.display.flip()
         
         timer.tick(100)
-        if counter > 100:
+        if counter%100 == 0:
             print "fps", int(timer.get_fps())
-            counter = 0
+            if counter > 10000:
+                counter = 0
 
 main()
