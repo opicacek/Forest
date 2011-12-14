@@ -3,6 +3,7 @@
 import pygame
 import random
 import sys
+import glob
 
 def toshow(image, deep):
     return pygame.transform.scale(image, (int(image.get_size()[0]//(1+deep/5.)), int(image.get_size()[1]//(1+deep/5.))) )
@@ -73,14 +74,24 @@ def main():
     #bg.append(pygame.image.load("img/snowforrest3.png").convert_alpha())
     #bg.append(pygame.image.load("img/snowforrest4.png").convert_alpha())
 
+    #loading animals
+    animals_images_filenames = ["img/animals/deer.png"]
+    #animals_images_filenames = glob.glob("img/animals/*.png")
+    
+    animals_images = []
+    for filename in animals_images_filenames:
+        animals_images.append( pygame.image.load( filename ).convert_alpha() )
+    
     shadow = pygame.Surface((screen_x, screen_y), pygame.SRCALPHA)
     shadow.fill((0,0,0,110))
 
-    player_img_left = pygame.image.load("img/deer.png").convert_alpha()
+    player_img_left = pygame.image.load("img/animals/deer.png").convert_alpha()
     player_img = player_img_left
 
     drop_img = pygame.image.load("img/leaf.png").convert_alpha()
     #drop_img = pygame.image.load("img/snowflake.png").convert_alpha()
+
+    cursor_img = pygame.image.load("img/cursor.png").convert_alpha()
 
     pygame.display.set_caption('Forrest')
     pygame.display.set_icon(drop_img)
@@ -104,6 +115,7 @@ def main():
         animals.append([])
 
     counter = 0
+    mouseclick = False
     
     while(1):
         counter += 1
@@ -114,6 +126,10 @@ def main():
                 sys.exit()
             if keys[pygame.K_ESCAPE]:
                 sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mouseclick = True
+
             if keys[pygame.K_f]:
                 pygame.display.toggle_fullscreen()
             if keys[pygame.K_UP]:
@@ -122,10 +138,10 @@ def main():
             if keys[pygame.K_DOWN]:
                 if deep > 1:
                     deep -= 1
+
         if keys[pygame.K_RIGHT]:
             x -= step
             player_img = pygame.transform.flip( player_img_left, 1, 0)
-            
         if keys[pygame.K_LEFT]:
             x += step
             player_img = player_img_left
@@ -156,6 +172,18 @@ def main():
 
             #animals
             for one in animals[i][:]:
+
+                #shooting
+                if mouseclick:
+                    #print pygame.mouse.get_pos(), ((x//(i+2))+one.position[0],one.position[1])
+                    #print one.image.get_size()
+                    if pygame.mouse.get_pos()[0] > (x//(i+2))+one.position[0] and pygame.mouse.get_pos()[0] < (x//(i+2))+one.position[0]+one.image.get_size()[0]: #x
+                        if pygame.mouse.get_pos()[1] > one.position[1] and pygame.mouse.get_pos()[1] < one.position[1]+one.image.get_size()[1]: #y
+                            #checking pixels for hit
+                            print "HIT"
+                            print (x//(i+2))+one.position[0]+one.image.get_size()[0]-pygame.mouse.get_pos()[0], one.position[1]+one.image.get_size()[1]-pygame.mouse.get_pos()[1]
+                            #print one.image.get_at( () )
+                
                 one.move()
                 # check of screen limits
                 #print one.position[0], (-(x//(i+2))+screen_x//2 - player_img_toshow.get_size()[0]//2)
@@ -165,6 +193,9 @@ def main():
                 else:
                     one.draw(screen, (x//(i+2)))
 
+        #drawing cursor
+        screen.blit(cursor_img, pygame.mouse.get_pos())
+
         #adding drops
         if counter%5 == 0:
             roll = random.randrange(0,len(drops))
@@ -173,17 +204,21 @@ def main():
             drops[ roll ].append(Drop([-(x//(roll+2))+ random.randrange(drop_img.get_size()[0], screen_x-drop_img.get_size()[0]), -drop_img.get_size()[1]], [random.randrange(-1,2), 0.5*random.randrange(1, 1+len(drops)-roll) ], drop_img_toshow))
 
         #adding animals
-        if counter%400 == 0:
+        if counter%100000 == 1:
+        #if counter%400 == 0:
             roll = random.randrange(1,len(animals))
-            animal_img_toshow = toshow(pygame.image.load("img/deer.png").convert_alpha(), roll)
+            #animal_img_toshow = toshow(pygame.image.load("img/animals/fox.png").convert_alpha(), roll)
+            animal_img_toshow = toshow( animals_images[ random.randrange(0, len(animals_images)) ], roll )
             roll2 = random.randrange(0, 2)
             animals[roll].append(Animal( [screen_x//2 - player_img_toshow.get_size()[0]//2-(x//(roll+2)) + (roll2*-2+1)*(animal_img_toshow.get_size()[0]//2+screen_x), screen_y -animal_img_toshow.get_size()[1] -35*(roll-1)], roll2, random.randrange(2,7)/10., animal_img_toshow ))
         
         pygame.display.flip()
         
+        mouseclick = False
+        
         timer.tick(100)
         if counter%100 == 0:
-            print "fps", int(timer.get_fps())
+            #print "fps", int(timer.get_fps())
             if counter > 10000:
                 counter = 0
 
