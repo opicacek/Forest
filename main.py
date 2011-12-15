@@ -65,7 +65,7 @@ def main():
 
     bg = []
     bg.append(pygame.image.load("img/forest1.png").convert_alpha())
-    bg.append(pygame.image.load("img/forest2_test.png").convert_alpha())
+    bg.append(pygame.image.load("img/forest2.png").convert_alpha())
     bg.append(pygame.image.load("img/forest3.png").convert_alpha())
     bg.append(pygame.image.load("img/forest4.png").convert_alpha())
     
