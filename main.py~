@@ -64,19 +64,19 @@ def main():
     pygame.mouse.set_visible(0)
 
     bg = []
-    bg.append(pygame.image.load("img/forrest1.png").convert_alpha())
-    bg.append(pygame.image.load("img/forrest2_test.png").convert_alpha())
-    bg.append(pygame.image.load("img/forrest3.png").convert_alpha())
-    bg.append(pygame.image.load("img/forrest4.png").convert_alpha())
+    bg.append(pygame.image.load("img/forest1.png").convert_alpha())
+    bg.append(pygame.image.load("img/forest2_test.png").convert_alpha())
+    bg.append(pygame.image.load("img/forest3.png").convert_alpha())
+    bg.append(pygame.image.load("img/forest4.png").convert_alpha())
     
-    #bg.append(pygame.image.load("img/snowforrest1.png").convert_alpha())
-    #bg.append(pygame.image.load("img/snowforrest2.png").convert_alpha())
-    #bg.append(pygame.image.load("img/snowforrest3.png").convert_alpha())
-    #bg.append(pygame.image.load("img/snowforrest4.png").convert_alpha())
+    #bg.append(pygame.image.load("img/snowforest1.png").convert_alpha())
+    #bg.append(pygame.image.load("img/snowforest2.png").convert_alpha())
+    #bg.append(pygame.image.load("img/snowforest3.png").convert_alpha())
+    #bg.append(pygame.image.load("img/snowforest4.png").convert_alpha())
 
     #loading animals
-    animals_images_filenames = ["img/animals/weasel.png"]
-    #animals_images_filenames = glob.glob("img/animals/*.png")
+    #animals_images_filenames = ["img/animals/weasel.png"]
+    animals_images_filenames = glob.glob("img/animals/*.png")
     
     animals_images = []
     for filename in animals_images_filenames:
@@ -93,10 +93,20 @@ def main():
 
     cursor_img = pygame.image.load("img/cursor.png").convert_alpha()
 
-    pygame.display.set_caption('Forrest')
+    pygame.display.set_caption('Forest')
     pygame.display.set_icon(drop_img)
 
     timer = pygame.time.Clock()
+
+    pygame.mixer.init()
+
+    sound_shotgun = pygame.mixer.Sound("music/shotgun.wav")
+    sound_walk = pygame.mixer.Sound("music/walk.wav")
+    
+    #sound_forest = pygame.mixer.Sound("music/forest.wav")
+    #sound_forest.play()
+    pygame.mixer.music.load("music/forest.wav")
+    pygame.mixer.music.play(-1)
 
     print "init done"
     
@@ -105,7 +115,12 @@ def main():
     y = 0
     deep = 1
     step = 2
-    
+
+    fire_recovery = 0
+
+    frags = 0
+    ammo = 100
+
     drops = []
     for member in bg:
         drops.append([])
@@ -119,6 +134,8 @@ def main():
     
     while(1):
         counter += 1
+        if fire_recovery > 0:
+            fire_recovery -= 1
 
         adept_to_die = None
 
@@ -131,8 +148,14 @@ def main():
                 sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                mouseclick = True
-                hitforrest = []
+                hitforest = []
+                
+                if ammo > 0 and fire_recovery == 0:
+                    mouseclick = True
+                    ammo -= 1
+                    fire_recovery = 100
+                    
+                    sound_shotgun.play()
 
             if keys[pygame.K_f]:
                 pygame.display.toggle_fullscreen()
@@ -143,45 +166,48 @@ def main():
                 if deep > 1:
                     deep -= 1
 
+        sound_walk.pause()
         if keys[pygame.K_RIGHT]:
             x -= step
             player_img = pygame.transform.flip( player_img_left, 1, 0)
+            sound_walk.unpause()
+
         if keys[pygame.K_LEFT]:
             x += step
             player_img = player_img_left
+            sound_walk.unpause()
 
-        # drawing forrest
+        # drawing forest
         for i,img in reversed(list(enumerate(bg))):
             #trees
-            forrest_draw_pos1 = (x//(i+2))%img.get_width(), y
-            forrest_draw_pos2 = (x//(i+2))%img.get_width()-img.get_width(), y
+            forest_draw_pos1 = (x//(i+2))%img.get_width(), y
+            forest_draw_pos2 = (x//(i+2))%img.get_width()-img.get_width(), y
 
             #screen.blit( img, ( (x//(i+2))%img.get_width(), y) )
             #screen.blit( img, ( (x//(i+2))%img.get_width()-img.get_width(), y) )
             screen.blit( img, ( (x//(i+2))%img.get_width(), y) )
             screen.blit( img, ( (x//(i+2))%img.get_width()-img.get_width(), y) )
 
-            #hit forrest
+            #hit forest
             if mouseclick:
-                #hitforrest.append(  )
-                #print i, img.get_at( ( forrest_draw_pos1[0]+pygame.mouse.get_pos()[0], forrest_draw_pos1[1]+pygame.mouse.get_pos()[1]) )
-                #print i, img.get_at( ( forrest_draw_pos2[0]+pygame.mouse.get_pos()[0], forrest_draw_pos2[1]+pygame.mouse.get_pos()[1]) )
+                #print i, img.get_at( ( forest_draw_pos1[0]+pygame.mouse.get_pos()[0], forest_draw_pos1[1]+pygame.mouse.get_pos()[1]) )
+                #print i, img.get_at( ( forest_draw_pos2[0]+pygame.mouse.get_pos()[0], forest_draw_pos2[1]+pygame.mouse.get_pos()[1]) )
                 
-                #print "==", img.get_width()+ forrest_draw_pos1[0]+pygame.mouse.get_pos()[0], "x", img.get_width()+ forrest_draw_pos2[0]+pygame.mouse.get_pos()[0], "=="
+                #print "==", img.get_width()+ forest_draw_pos1[0]+pygame.mouse.get_pos()[0], "x", img.get_width()+ forest_draw_pos2[0]+pygame.mouse.get_pos()[0], "=="
                 
-                #print -forrest_draw_pos1[0]+pygame.mouse.get_pos()[0], -forrest_draw_pos2[0]+pygame.mouse.get_pos()[0]
+                #print -forest_draw_pos1[0]+pygame.mouse.get_pos()[0], -forest_draw_pos2[0]+pygame.mouse.get_pos()[0]
                 
-                if -forrest_draw_pos1[0]+pygame.mouse.get_pos()[0] >= 0 and -forrest_draw_pos1[0]+pygame.mouse.get_pos()[0] < img.get_size()[0]:
-                    #print i, img.get_at( ( -forrest_draw_pos1[0]+pygame.mouse.get_pos()[0], forrest_draw_pos1[1]+pygame.mouse.get_pos()[1]) )
-                    hitforrest.append( img.get_at( ( -forrest_draw_pos1[0]+pygame.mouse.get_pos()[0], forrest_draw_pos1[1]+pygame.mouse.get_pos()[1]) ) )
+                if -forest_draw_pos1[0]+pygame.mouse.get_pos()[0] >= 0 and -forest_draw_pos1[0]+pygame.mouse.get_pos()[0] < img.get_size()[0]:
+                    #print i, img.get_at( ( -forest_draw_pos1[0]+pygame.mouse.get_pos()[0], forest_draw_pos1[1]+pygame.mouse.get_pos()[1]) )
+                    hitforest.append( img.get_at( ( -forest_draw_pos1[0]+pygame.mouse.get_pos()[0], forest_draw_pos1[1]+pygame.mouse.get_pos()[1]) ) )
                 else:
-                    #print i, img.get_at( ( -forrest_draw_pos2[0]+pygame.mouse.get_pos()[0], forrest_draw_pos2[1]+pygame.mouse.get_pos()[1]) )
-                    hitforrest.append( img.get_at( ( -forrest_draw_pos2[0]+pygame.mouse.get_pos()[0], forrest_draw_pos2[1]+pygame.mouse.get_pos()[1]) ) )
+                    #print i, img.get_at( ( -forest_draw_pos2[0]+pygame.mouse.get_pos()[0], forest_draw_pos2[1]+pygame.mouse.get_pos()[1]) )
+                    hitforest.append( img.get_at( ( -forest_draw_pos2[0]+pygame.mouse.get_pos()[0], forest_draw_pos2[1]+pygame.mouse.get_pos()[1]) ) )
                 
-                #if forrest_draw_pos1[0]+pygame.mouse.get_pos()[0] > img.get_size()[0]:
-                #    print i, img.get_at( ( forrest_draw_pos2[0]+pygame.mouse.get_pos()[0], forrest_draw_pos2[1]+pygame.mouse.get_pos()[1]) )
+                #if forest_draw_pos1[0]+pygame.mouse.get_pos()[0] > img.get_size()[0]:
+                #    print i, img.get_at( ( forest_draw_pos2[0]+pygame.mouse.get_pos()[0], forest_draw_pos2[1]+pygame.mouse.get_pos()[1]) )
                 #else:
-                #    print i, img.get_at( ( forrest_draw_pos1[0]+pygame.mouse.get_pos()[0], forrest_draw_pos1[1]+pygame.mouse.get_pos()[1]) )
+                #    print i, img.get_at( ( forest_draw_pos1[0]+pygame.mouse.get_pos()[0], forest_draw_pos1[1]+pygame.mouse.get_pos()[1]) )
                 
                     
             #drops
@@ -224,12 +250,11 @@ def main():
                                 #    #print i, layer.get_at( pygame.mouse.get_pos() )
                                 #    print i, layer.get_at( ((x//(i+2))%layer.get_width() +pygame.mouse.get_pos()[0], y +pygame.mouse.get_pos()[1]) ), layer.get_at( ((x//(i+2))%layer.get_width()-img.get_width() +pygame.mouse.get_pos()[0], y +pygame.mouse.get_pos()[1]) )
                                 #print "================="
-                                #for pixel in hitforrest:
                                     
                                 #print "HIT"
                                 #animals[i].remove(one)
                                 adept_to_die = one
-                                hitforrest = []
+                                hitforest = []
                                 
                 one.move()
                 # check of screen limits
@@ -242,14 +267,15 @@ def main():
         
         #killing
         if adept_to_die != None:
-            #print len(hitforrest)
+            #print len(hitforest)
             kill = True
-            for pixel in hitforrest:
+            for pixel in hitforest:
                 if pixel != (0,0,0,0):
                     kill = False
             
             if kill:
-                animals[len(hitforrest)].remove(adept_to_die)
+                animals[len(hitforest)].remove(adept_to_die)
+                frags += 1
 
         #drawing cursor
         screen.blit(cursor_img, (pygame.mouse.get_pos()[0]-cursor_img.get_size()[0]//2, pygame.mouse.get_pos()[1]-cursor_img.get_size()[1]//2))
