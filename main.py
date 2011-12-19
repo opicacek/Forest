@@ -53,27 +53,60 @@ class Animal:
 
 def main():
     
-    # init all
+    #Pygame
     pygame.init()
 
     screen_x = 320 # in future use size of BG
     screen_y = 200
-    #screen = pygame.display.set_mode((screen_x, screen_y), pygame.FULLSCREEN)
-    screen = pygame.display.set_mode((screen_x, screen_y))
+    screen = pygame.display.set_mode((screen_x, screen_y), pygame.FULLSCREEN)
+    #screen = pygame.display.set_mode((screen_x, screen_y))
 
     pygame.mouse.set_visible(0)
 
-    bg = []
-    bg.append(pygame.image.load("img/forest1.png").convert_alpha())
-    bg.append(pygame.image.load("img/forest2.png").convert_alpha())
-    bg.append(pygame.image.load("img/forest3.png").convert_alpha())
-    bg.append(pygame.image.load("img/forest4.png").convert_alpha())
-    
-    #bg.append(pygame.image.load("img/snowforest1.png").convert_alpha())
-    #bg.append(pygame.image.load("img/snowforest2.png").convert_alpha())
-    #bg.append(pygame.image.load("img/snowforest3.png").convert_alpha())
-    #bg.append(pygame.image.load("img/snowforest4.png").convert_alpha())
+    level = []
+    season = 0
 
+    # 640x400
+    #bg.append(pygame.image.load("img/f1.png").convert_alpha())
+    #bg.append(pygame.image.load("img/f2.png").convert_alpha())
+    #bg.append(pygame.image.load("img/f3.png").convert_alpha())
+    #bg.append(pygame.image.load("img/f4.png").convert_alpha())
+
+    # 320x200
+    #level.append([])
+    #level[0].append(pygame.image.load("img/leaf.png").convert_alpha())
+    #level[0].append(pygame.image.load("img/forest1.png").convert_alpha())
+    #level[0].append(pygame.image.load("img/forest2.png").convert_alpha())
+    #level[0].append(pygame.image.load("img/forest3.png").convert_alpha())
+    #level[0].append(pygame.image.load("img/forest4.png").convert_alpha())
+    
+    # summer
+    level.append([])
+    level[0].append(pygame.image.load("img/leaf.png").convert_alpha())
+    level[0].append(pygame.image.load("img/summer1.png").convert_alpha())
+    level[0].append(pygame.image.load("img/summer2.png").convert_alpha())
+    level[0].append(pygame.image.load("img/summer3.png").convert_alpha())
+    level[0].append(pygame.image.load("img/summer4.png").convert_alpha())
+
+    # fall
+    level.append([])
+    level[1].append(pygame.image.load("img/fall_leaf.png").convert_alpha())
+    level[1].append(pygame.image.load("img/fall1.png").convert_alpha())
+    level[1].append(pygame.image.load("img/fall2.png").convert_alpha())
+    level[1].append(pygame.image.load("img/fall3.png").convert_alpha())
+    level[1].append(pygame.image.load("img/fall4.png").convert_alpha())
+
+    # winter
+    level.append([])
+    level[2].append(pygame.image.load("img/snowflake.png").convert_alpha())
+    level[2].append(pygame.image.load("img/winter1.png").convert_alpha())
+    level[2].append(pygame.image.load("img/winter2.png").convert_alpha())
+    level[2].append(pygame.image.load("img/winter3.png").convert_alpha())
+    level[2].append(pygame.image.load("img/winter4.png").convert_alpha())
+
+    bg = level[season][1:]
+    drop_img = level[season][0]
+    
     #loading animals
     #animals_images_filenames = ["img/animals/weasel.png"]
     animals_images_filenames = glob.glob("img/animals/*.png")
@@ -83,19 +116,17 @@ def main():
         animals_images.append( pygame.image.load( filename ).convert_alpha() )
     
     shadow = pygame.Surface((screen_x, screen_y), pygame.SRCALPHA)
-    shadow.fill((0,0,0,110))
+    shadow.fill((0,0,0,95))
 
-    player_img_left = pygame.image.load("img/animals/deer.png").convert_alpha()
+    player_img_left = pygame.image.load("img/hunter.png").convert_alpha()
     player_img = player_img_left
-
-    drop_img = pygame.image.load("img/leaf.png").convert_alpha()
-    #drop_img = pygame.image.load("img/snowflake.png").convert_alpha()
 
     cursor_img = pygame.image.load("img/cursor.png").convert_alpha()
 
     pygame.display.set_caption('Forest')
     pygame.display.set_icon(drop_img)
 
+    #Mixer
     timer = pygame.time.Clock()
 
     pygame.mixer.init()
@@ -110,13 +141,17 @@ def main():
     pygame.mixer.music.load("music/forest.wav")
     pygame.mixer.music.play(-1)
 
+    #Font
+    #pygame.font.init()
+    #font = pygame.font.Font(None, 36)
+
     print "init done"
     
     #global position
     x = 0
     y = 0
     deep = 1
-    step = 2
+    step = 3
 
     fire_recovery = 0
 
@@ -131,7 +166,7 @@ def main():
     for member in bg:
         animals.append([])
 
-    counter = 0
+    counter = -500
     mouseclick = False
     
     while(1):
@@ -162,11 +197,13 @@ def main():
             if keys[pygame.K_f]:
                 pygame.display.toggle_fullscreen()
             if keys[pygame.K_UP]:
-                if deep < len(bg)-1:
+                if deep < len(bg)-1 and fire_recovery == 0:
                     deep += 1
+                    fire_recovery = 50
             if keys[pygame.K_DOWN]:
-                if deep > 1:
+                if deep > 1 and fire_recovery == 0:
                     deep -= 1
+                    fire_recovery = 50
 
         sound_walk_c.pause()
         if keys[pygame.K_RIGHT]:
@@ -228,7 +265,7 @@ def main():
             if i == deep:
                 player_img_toshow = toshow(player_img, deep)
 
-                #screen.blit( player_img_toshow, (screen_x//2 - player_img_toshow.get_size()[0]//2, screen_y -player_img_toshow.get_size()[1] -35*(deep-1)) )
+                screen.blit( player_img_toshow, (screen_x//2 - player_img_toshow.get_size()[0]//2, screen_y -player_img_toshow.get_size()[1] -35*(deep-1)) )
 
             #animals
             for one in animals[i][:]:
@@ -279,6 +316,14 @@ def main():
                 animals[len(hitforest)].remove(adept_to_die)
                 frags += 1
 
+        #drawing HUD
+        font = pygame.font.Font(None, 12)
+        text = font.render("Ammo: " + str(ammo), 1, (200, 200, 200))
+        screen.blit(text, (10, 10))
+        
+        text = font.render("Frags: " + str(frags), 1, (200, 200, 200))
+        screen.blit(text, (10, 30))
+
         #drawing cursor
         screen.blit(cursor_img, (pygame.mouse.get_pos()[0]-cursor_img.get_size()[0]//2, pygame.mouse.get_pos()[1]-cursor_img.get_size()[1]//2))
 
@@ -296,15 +341,22 @@ def main():
             #animal_img_toshow = toshow(pygame.image.load("img/animals/fox.png").convert_alpha(), roll)
             animal_img_toshow = toshow( animals_images[ random.randrange(0, len(animals_images)) ], roll )
             roll2 = random.randrange(0, 2)
-            animals[roll].append(Animal( [screen_x//2 - player_img_toshow.get_size()[0]//2-(x//(roll+2)) + (roll2*-2+1)*(animal_img_toshow.get_size()[0]//2+screen_x), screen_y -animal_img_toshow.get_size()[1] -35*(roll-1)], roll2, random.randrange(2,7)/10., animal_img_toshow ))
-        
+            #animals[roll].append(Animal( [screen_x//2 - player_img_toshow.get_size()[0]//2-(x//(roll+2)) + (roll2*-2+1)*(animal_img_toshow.get_size()[0]//2+screen_x), screen_y -animal_img_toshow.get_size()[1] -35*(roll-1)], roll2, random.randrange(2,7)/10., animal_img_toshow ))
+            animals[roll].append(Animal( [screen_x//2 - player_img_toshow.get_size()[0]//2-(x//(roll+2)) + (roll2*-2+1)*(animal_img_toshow.get_size()[0]//2+screen_x), screen_y -animal_img_toshow.get_size()[1] -35*(roll-1)], roll2, random.randrange(7,12)/10., animal_img_toshow ))
+
         pygame.display.flip()
         
         mouseclick = False
         
         timer.tick(100)
         if counter%100 == 0:
-            #print "fps", int(timer.get_fps())
+            print "fps", int(timer.get_fps())
+            if counter%3000 == 0:
+                season += 1
+                if season > len(level)-1:
+                    season = 0
+                bg = level[season][1:]
+                drop_img = level[season][0]
             if counter > 10000:
                 counter = 0
 
