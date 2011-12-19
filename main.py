@@ -64,46 +64,44 @@ def main():
     pygame.mouse.set_visible(0)
 
     level = []
-    season = 0
+    season = 1 
 
     # 640x400
-    #bg.append(pygame.image.load("img/f1.png").convert_alpha())
-    #bg.append(pygame.image.load("img/f2.png").convert_alpha())
-    #bg.append(pygame.image.load("img/f3.png").convert_alpha())
-    #bg.append(pygame.image.load("img/f4.png").convert_alpha())
+    # ? (80 FPS)
 
     # 320x200
-    #level.append([])
-    #level[0].append(pygame.image.load("img/leaf.png").convert_alpha())
-    #level[0].append(pygame.image.load("img/forest1.png").convert_alpha())
-    #level[0].append(pygame.image.load("img/forest2.png").convert_alpha())
-    #level[0].append(pygame.image.load("img/forest3.png").convert_alpha())
-    #level[0].append(pygame.image.load("img/forest4.png").convert_alpha())
+    # spring
+    level.append([])
+    level[0].append(pygame.image.load("img/spring_leaf.png").convert_alpha())
+    level[0].append(pygame.image.load("img/spring1.png").convert_alpha())
+    level[0].append(pygame.image.load("img/spring2.png").convert_alpha())
+    level[0].append(pygame.image.load("img/spring3.png").convert_alpha())
+    level[0].append(pygame.image.load("img/spring4.png").convert_alpha())
     
     # summer
     level.append([])
-    level[0].append(pygame.image.load("img/leaf.png").convert_alpha())
-    level[0].append(pygame.image.load("img/summer1.png").convert_alpha())
-    level[0].append(pygame.image.load("img/summer2.png").convert_alpha())
-    level[0].append(pygame.image.load("img/summer3.png").convert_alpha())
-    level[0].append(pygame.image.load("img/summer4.png").convert_alpha())
+    level[1].append(pygame.image.load("img/leaf.png").convert_alpha())
+    level[1].append(pygame.image.load("img/summer1.png").convert_alpha())
+    level[1].append(pygame.image.load("img/summer2.png").convert_alpha())
+    level[1].append(pygame.image.load("img/summer3.png").convert_alpha())
+    level[1].append(pygame.image.load("img/summer4.png").convert_alpha())
 
     # fall
     level.append([])
-    level[1].append(pygame.image.load("img/fall_leaf.png").convert_alpha())
-    level[1].append(pygame.image.load("img/fall1.png").convert_alpha())
-    level[1].append(pygame.image.load("img/fall2.png").convert_alpha())
-    level[1].append(pygame.image.load("img/fall3.png").convert_alpha())
-    level[1].append(pygame.image.load("img/fall4.png").convert_alpha())
+    level[2].append(pygame.image.load("img/fall_leaf.png").convert_alpha())
+    level[2].append(pygame.image.load("img/fall1.png").convert_alpha())
+    level[2].append(pygame.image.load("img/fall2.png").convert_alpha())
+    level[2].append(pygame.image.load("img/fall3.png").convert_alpha())
+    level[2].append(pygame.image.load("img/fall4.png").convert_alpha())
 
     # winter
     level.append([])
-    level[2].append(pygame.image.load("img/snowflake.png").convert_alpha())
-    level[2].append(pygame.image.load("img/winter1.png").convert_alpha())
-    level[2].append(pygame.image.load("img/winter2.png").convert_alpha())
-    level[2].append(pygame.image.load("img/winter3.png").convert_alpha())
-    level[2].append(pygame.image.load("img/winter4.png").convert_alpha())
-
+    level[3].append(pygame.image.load("img/snowflake.png").convert_alpha())
+    level[3].append(pygame.image.load("img/winter1.png").convert_alpha())
+    level[3].append(pygame.image.load("img/winter2.png").convert_alpha())
+    level[3].append(pygame.image.load("img/winter3.png").convert_alpha())
+    level[3].append(pygame.image.load("img/winter4.png").convert_alpha())
+    
     bg = level[season][1:]
     drop_img = level[season][0]
     
@@ -118,7 +116,8 @@ def main():
     shadow = pygame.Surface((screen_x, screen_y), pygame.SRCALPHA)
     shadow.fill((0,0,0,95))
 
-    player_img_left = pygame.image.load("img/hunter.png").convert_alpha()
+    #player_img_left = pygame.image.load("img/hunter.png").convert_alpha()
+    player_img_left =  pygame.image.load( glob.glob("img/hunter/*.png")[ random.randrange(0, len(glob.glob("img/hunter/*.png"))) ] ).convert_alpha()
     player_img = player_img_left
 
     cursor_img = pygame.image.load("img/cursor.png").convert_alpha()
@@ -154,6 +153,7 @@ def main():
     step = 3
 
     fire_recovery = 0
+    move_recovery = 0
 
     frags = 0
     ammo = 100
@@ -166,13 +166,15 @@ def main():
     for member in bg:
         animals.append([])
 
-    counter = -500
+    counter = 0
     mouseclick = False
     
     while(1):
         counter += 1
         if fire_recovery > 0:
             fire_recovery -= 1
+        if move_recovery > 0:
+            move_recovery -= 1
 
         adept_to_die = None
 
@@ -197,13 +199,13 @@ def main():
             if keys[pygame.K_f]:
                 pygame.display.toggle_fullscreen()
             if keys[pygame.K_UP]:
-                if deep < len(bg)-1 and fire_recovery == 0:
+                if deep < len(bg)-1 and move_recovery == 0:
                     deep += 1
-                    fire_recovery = 50
+                    move_recovery = 50
             if keys[pygame.K_DOWN]:
-                if deep > 1 and fire_recovery == 0:
+                if deep > 1 and move_recovery == 0:
                     deep -= 1
-                    fire_recovery = 50
+                    move_recovery = 50
 
         sound_walk_c.pause()
         if keys[pygame.K_RIGHT]:
@@ -328,7 +330,7 @@ def main():
         screen.blit(cursor_img, (pygame.mouse.get_pos()[0]-cursor_img.get_size()[0]//2, pygame.mouse.get_pos()[1]-cursor_img.get_size()[1]//2))
 
         #adding drops
-        if counter%5 == 0:
+        if counter%(7-2*season) == 0:
             roll = random.randrange(0,len(drops))
             drop_img_toshow = toshow(drop_img, roll)
 
@@ -343,6 +345,12 @@ def main():
             roll2 = random.randrange(0, 2)
             #animals[roll].append(Animal( [screen_x//2 - player_img_toshow.get_size()[0]//2-(x//(roll+2)) + (roll2*-2+1)*(animal_img_toshow.get_size()[0]//2+screen_x), screen_y -animal_img_toshow.get_size()[1] -35*(roll-1)], roll2, random.randrange(2,7)/10., animal_img_toshow ))
             animals[roll].append(Animal( [screen_x//2 - player_img_toshow.get_size()[0]//2-(x//(roll+2)) + (roll2*-2+1)*(animal_img_toshow.get_size()[0]//2+screen_x), screen_y -animal_img_toshow.get_size()[1] -35*(roll-1)], roll2, random.randrange(7,12)/10., animal_img_toshow ))
+
+        #season details
+        if season == 3:
+            pygame.mixer.music.pause()
+        else:
+            pygame.mixer.music.unpause()
 
         pygame.display.flip()
         
